@@ -1801,3 +1801,69 @@ select {
     }
 
 }
+/* --------------------------------------------------------------------------
+   Route split compatibility / animation stability
+   -------------------------------------------------------------------------- */
+
+#loader {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .7s ease, visibility 0s linear .7s;
+}
+
+#loader.is-hiding {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.navbar nav a.is-active::after {
+    width: 100%;
+}
+
+.btn,
+.search-btn {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.cursor-glow {
+    left: 0;
+    top: 0;
+    will-change: transform, opacity;
+    opacity: 0;
+    transition: opacity .18s ease;
+}
+
+.cursor-glow.is-visible {
+    opacity: 1;
+}
+
+.orb-motion {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    will-change: transform;
+}
+
+textarea {
+    font-family: inherit;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .cursor-glow {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}

@@ -33,7 +33,7 @@
 
                 </a>
 
-                <a href="#" class="btn btn-outline hero-btn">
+                <a href="{{ route('connections') }}" class="btn btn-outline hero-btn">
 
                     Rozkład jazdy
 
@@ -166,11 +166,11 @@
 
                     </div>
 
-                    <button class="search-btn">
+                    <a href="{{ route('connections') }}" class="search-btn">
 
                         🔍 Znajdź połączenie
 
-                    </button>
+                    </a>
 
                 </div>
 
