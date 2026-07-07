@@ -21,7 +21,7 @@
             <p>
 
                 Odkrywaj połączenia kolejowe, kupuj bilety w kilka sekund
-                i podróżuj wygodniej niż kiedykolwiek wcześniej.
+                i podróżuj wygodniej niż kiedykolwiek wcześniej!
 
             </p>
 
