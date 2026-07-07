@@ -1,0 +1,71 @@
+
+
+services:
+  app:
+    build:
+      context: ./docker/php
+    container_name: railway_app
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - redis
+    networks:
+      - railway_net
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: railway_nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - railway_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: railway_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - railway_net
+
+  # Osobny kontener dla WebSocketów (real-time seat locking)
+  reverb:
+    build:
+      context: ./docker/php
+    container_name: railway_reverb
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - app
+      - redis
+    networks:
+      - railway_net
+
+  # Scheduler do "self-healing" generowania kursów (co minutę cron -> artisan schedule:run)
+  scheduler:
+    build:
+      context: ./docker/php
+    container_name: railway_scheduler
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    depends_on:
+      - app
+      - redis
+    networks:
+      - railway_net
+
+networks:
+  railway_net:
+    driver: bridge

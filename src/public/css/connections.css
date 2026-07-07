@@ -1,0 +1,850 @@
+/* ======================================
+   CONNECTIONS PAGE
+====================================== */
+
+
+.connections-page {
+
+    padding-top:140px;
+
+    padding-bottom:100px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #f8fafc,
+            #ffffff
+        );
+
+}
+
+
+
+/* ======================================
+   SEARCH BOX
+====================================== */
+
+
+.search-box {
+
+    background:
+        rgba(255,255,255,.75);
+
+    backdrop-filter:
+        blur(25px);
+
+    border:
+        1px solid rgba(255,255,255,.9);
+
+    border-radius:
+        30px;
+
+    padding:35px;
+
+    box-shadow:
+        0 25px 70px rgba(15,23,42,.08);
+
+}
+
+
+
+.route-input {
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 70px 1fr;
+
+    align-items:end;
+
+    gap:20px;
+
+}
+
+
+
+.route-input label,
+.route-options label {
+
+    display:block;
+
+    font-size:13px;
+
+    color:#64748b;
+
+    margin-bottom:8px;
+
+}
+
+
+
+.route-input input,
+.route-options input,
+.route-options select {
+
+
+    width:100%;
+
+    padding:17px;
+
+    border-radius:16px;
+
+    border:
+
+        1px solid #e2e8f0;
+
+
+    background:white;
+
+    font-size:16px;
+
+    outline:none;
+
+    transition:.3s;
+
+}
+
+
+
+.route-input input:focus,
+.route-options input:focus,
+.route-options select:focus {
+
+    border-color:#2563eb;
+
+    box-shadow:
+        0 0 0 4px rgba(37,99,235,.1);
+
+}
+
+
+
+.swap-button {
+
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #06b6d4
+        );
+
+
+    color:white;
+
+    font-size:25px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+
+}
+
+
+
+.swap-button:hover {
+
+
+    transform:
+        rotate(180deg);
+
+}
+
+
+
+.route-options {
+
+    margin-top:25px;
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr 220px;
+
+    gap:20px;
+
+    align-items:end;
+
+}
+
+
+
+.route-options button {
+
+
+    height:55px;
+
+    border:none;
+
+    border-radius:16px;
+
+    color:white;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #06b6d4
+        );
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.route-options button:hover {
+
+
+    transform:
+        translateY(-4px);
+
+
+}
+
+
+
+/* ======================================
+   HEADER
+====================================== */
+
+
+.results-header {
+
+    margin:
+
+        70px 0 30px;
+
+}
+
+
+
+.results-header h1 {
+
+    font-size:42px;
+
+    letter-spacing:-1px;
+
+}
+
+
+
+.results-header p {
+
+    color:#64748b;
+
+    margin-top:10px;
+
+}
+
+
+
+
+
+/* ======================================
+   CONNECTION CARD
+====================================== */
+
+
+.connections-list {
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:25px;
+
+}
+
+
+
+.connection-card {
+
+
+    background:white;
+
+    border-radius:30px;
+
+    padding:30px;
+
+
+    box-shadow:
+
+        0 20px 50px rgba(15,23,42,.08);
+
+
+    border:
+
+        1px solid #e5e7eb;
+
+
+    transition:.4s;
+
+
+}
+
+
+
+.connection-card:hover {
+
+
+    transform:
+        translateY(-5px);
+
+
+}
+
+
+
+
+
+.connection-top {
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+        1fr 1fr 350px;
+
+
+    gap:30px;
+
+    align-items:center;
+
+
+}
+
+
+
+.direct {
+
+
+    display:inline-block;
+
+    background:
+
+        #dcfce7;
+
+
+    color:
+
+        #16a34a;
+
+
+    padding:
+
+        6px 14px;
+
+
+    border-radius:999px;
+
+
+    font-size:13px;
+
+    font-weight:700;
+
+
+}
+
+
+
+.connection-top h2 {
+
+
+    font-size:34px;
+
+    margin-top:20px;
+
+
+}
+
+
+
+.connection-top h2 span {
+
+
+    color:#2563eb;
+
+    padding:0 10px;
+
+
+}
+
+
+
+.connection-top p {
+
+    color:#64748b;
+
+}
+
+
+
+/* route */
+
+
+.route {
+
+
+    position:relative;
+
+
+}
+
+
+
+.route strong {
+
+
+    display:block;
+
+    font-size:18px;
+
+}
+
+
+
+.line {
+
+
+    width:100%;
+
+    height:2px;
+
+    background:
+
+        linear-gradient(
+            90deg,
+            #2563eb,
+            #06b6d4
+        );
+
+
+    margin:18px 0;
+
+
+    position:relative;
+
+
+}
+
+
+
+.line::after {
+
+
+    content:"🚄";
+
+
+    position:absolute;
+
+    top:-15px;
+
+    left:45%;
+
+
+    animation:
+
+        trainMove 3s infinite;
+
+
+}
+
+
+
+
+
+/* prices */
+
+
+.prices {
+
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+
+    gap:15px;
+
+
+}
+
+
+
+.prices div {
+
+
+    border:
+
+        1px solid #e2e8f0;
+
+
+    border-radius:20px;
+
+
+    padding:20px;
+
+
+}
+
+
+
+.prices h4 {
+
+    color:#2563eb;
+
+}
+
+
+
+.prices strong {
+
+
+    display:block;
+
+    font-size:28px;
+
+    margin:15px 0;
+
+
+}
+
+
+
+.prices button {
+
+
+    width:100%;
+
+    padding:14px;
+
+
+    border:none;
+
+    border-radius:12px;
+
+
+    background:
+
+        #f97316;
+
+
+    color:white;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+
+}
+
+
+
+
+/* ======================================
+   DETAILS
+====================================== */
+
+
+.details-btn {
+
+
+    margin-top:30px;
+
+
+    background:none;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-weight:700;
+
+    color:#1e3a8a;
+
+
+}
+
+
+
+.connection-details {
+
+
+    max-height:0;
+
+    overflow:hidden;
+
+
+    opacity:0;
+
+
+    transition:
+
+        max-height .6s ease,
+        opacity .4s;
+
+
+}
+
+
+
+.connection-card.open .connection-details {
+
+
+    max-height:1000px;
+
+    opacity:1;
+
+
+}
+
+
+
+
+
+/* ======================================
+   TIMELINE
+====================================== */
+
+
+.timeline {
+
+
+    margin-top:40px;
+
+    padding:30px;
+
+    background:#f8fafc;
+
+    border-radius:25px;
+
+
+}
+
+
+
+.station {
+
+
+    margin:
+
+        10px 0 25px 40px;
+
+
+    color:#475569;
+
+
+}
+
+
+
+
+
+/* ======================================
+   WAGON
+====================================== */
+
+
+.wagon {
+
+
+    margin-top:30px;
+
+
+}
+
+
+
+.wagon-header {
+
+
+    font-size:22px;
+
+    font-weight:700;
+
+
+    margin-bottom:20px;
+
+
+}
+
+
+
+.seats {
+
+
+    display:grid;
+
+    grid-template-columns:
+
+        repeat(10,45px);
+
+
+    gap:12px;
+
+
+}
+
+
+
+.seat {
+
+
+    width:45px;
+
+    height:45px;
+
+
+    border:none;
+
+    border-radius:10px;
+
+
+    background:#dbeafe;
+
+    color:#1e3a8a;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+
+}
+
+
+
+.seat:hover {
+
+
+    transform:
+
+        scale(1.1);
+
+
+}
+
+
+
+.seat.selected {
+
+
+    background:#2563eb;
+
+    color:white;
+
+
+}
+
+
+
+.seat.occupied {
+
+
+    background:#cbd5e1;
+
+    cursor:not-allowed;
+
+}
+
+
+
+
+
+@keyframes trainMove {
+
+
+    50% {
+
+        left:70%;
+
+    }
+
+
+}
+
+
+
+
+
+@media(max-width:1000px){
+
+
+.connection-top {
+
+
+    grid-template-columns:1fr;
+
+
+}
+
+
+.route-options {
+
+
+    grid-template-columns:1fr;
+
+
+}
+
+
+.route-input {
+
+
+    grid-template-columns:1fr;
+
+
+}
+
+
+.swap-button {
+
+
+    margin:auto;
+
+}
+
+
+}
+
+
+@media(max-width:600px){
+
+
+.seats {
+
+
+    grid-template-columns:
+
+        repeat(5,45px);
+
+}
+
+
+}
