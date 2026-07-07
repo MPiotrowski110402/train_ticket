@@ -17,7 +17,7 @@
             <h2>
 
                 Wszystko czego potrzebujesz
-                podczas podróży.
+                podczas twojej podróży.
 
             </h2>
 
