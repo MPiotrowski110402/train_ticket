@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\ConnectionController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::view('/', 'welcome')
+    ->name('home');
 
-Route::view('/polaczenia', 'connections.index')->name('connections');
+Route::get('/polaczenia', [ConnectionController::class, 'index'])
+    ->name('connections');
 
-Route::view('/promocje', 'promotions.index')->name('promotions');
+Route::view('/promocje', 'promotions.index')
+    ->name('promotions');
 
-Route::view('/kontakt', 'contact.index')->name('contact');
+Route::view('/kontakt', 'contact.index')
+    ->name('contact');

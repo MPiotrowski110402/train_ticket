@@ -79,6 +79,7 @@
 
 
 .route-input input,
+.route-input select,
 .route-options input,
 .route-options select {
 
@@ -107,6 +108,7 @@
 
 
 .route-input input:focus,
+.route-input select:focus,
 .route-options input:focus,
 .route-options select:focus {
 
@@ -847,4 +849,229 @@
 }
 
 
+}
+
+/* =========================================================
+   WŁASNY WYBÓR MIAST — RailTicket
+   ========================================================= */
+
+.search-box {
+    position: relative;
+    overflow: visible;
+}
+
+.route-input {
+    align-items: flex-end;
+}
+
+.field-group {
+    position: relative;
+    min-width: 0;
+    flex: 1;
+}
+
+.city-picker {
+    position: relative;
+    width: 100%;
+    z-index: 5;
+}
+
+.city-picker.is-open {
+    z-index: 100;
+}
+
+.city-picker-trigger {
+    width: 100%;
+    min-height: 50px;
+    padding: 0 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    border: 1px solid #dce4f1;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.92);
+
+    color: #18243d;
+    font: inherit;
+    font-size: 0.98rem;
+    text-align: left;
+    cursor: pointer;
+
+    box-shadow: 0 5px 18px rgba(35, 65, 120, 0.04);
+    transition:
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.22s ease,
+        background 0.22s ease;
+}
+
+.city-picker-trigger:hover {
+    border-color: #88b9ff;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(31, 100, 214, 0.1);
+}
+
+.city-picker.is-open .city-picker-trigger {
+    border-color: #218bf0;
+    background: #ffffff;
+    box-shadow:
+        0 0 0 3px rgba(33, 139, 240, 0.13),
+        0 10px 28px rgba(31, 100, 214, 0.13);
+}
+
+.city-picker-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.city-picker-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+
+    color: #3a83dc;
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1;
+
+    transition: transform 0.25s ease;
+}
+
+.city-picker.is-open .city-picker-chevron {
+    transform: rotate(180deg);
+}
+
+.city-picker-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+
+    max-height: 290px;
+    overflow-y: auto;
+
+    padding: 8px;
+    border: 1px solid rgba(154, 187, 233, 0.55);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.97);
+
+    box-shadow:
+        0 20px 44px rgba(20, 64, 135, 0.18),
+        0 3px 12px rgba(26, 74, 145, 0.08);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px) scale(0.98);
+    transform-origin: top center;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        visibility 0.2s ease;
+}
+
+.city-picker.is-open .city-picker-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.city-picker-option {
+    width: 100%;
+    min-height: 45px;
+    padding: 0 13px;
+
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+
+    color: #18243d;
+    font: inherit;
+    font-size: 0.94rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.city-picker-option:hover {
+    background: rgba(33, 139, 240, 0.1);
+    color: #1479dc;
+    transform: translateX(3px);
+}
+
+.city-picker-option[aria-selected="true"] {
+    background: linear-gradient(135deg, #237fe8, #0caed4);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 6px 15px rgba(20, 135, 227, 0.22);
+}
+
+.city-picker-pin {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+
+    border-radius: 50%;
+    background: #52a4f3;
+    box-shadow: 0 0 0 4px rgba(82, 164, 243, 0.12);
+}
+
+.city-picker-option[aria-selected="true"] .city-picker-pin {
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+/* Pasek przewijania listy miast */
+.city-picker-menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+.city-picker-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.city-picker-menu::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: #9fc9f6;
+    background-clip: padding-box;
+}
+
+.city-picker-menu::-webkit-scrollbar-thumb:hover {
+    background: #5fa8ec;
+    background-clip: padding-box;
+}
+
+/* Telefon / węższe ekrany */
+@media (max-width: 720px) {
+    .route-input {
+        align-items: stretch;
+    }
+
+    .field-group {
+        width: 100%;
+    }
+
+    .city-picker-menu {
+        max-height: 230px;
+    }
 }
