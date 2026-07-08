@@ -2,9 +2,8 @@
 |--------------------------------------------------------------------------
 | RailTicket – restored landing / shared interface animations
 |--------------------------------------------------------------------------
-| This restores every original effect: loader, navbar state, scroll
-| progress, cursor glow, background parallax, counters, reveal and ripple.
-| Animations use requestAnimationFrame where events fire frequently.
+| Restores loader, navbar state, scroll progress, cursor glow,
+| background parallax, counters, reveal and ripple.
 |--------------------------------------------------------------------------
 */
 
@@ -24,101 +23,51 @@
 
     function initLoader() {
         const loader = document.getElementById('loader');
-        const progressBar = loader?.querySelector('.loader-progress');
+        const progress = loader?.querySelector('.loader-progress');
 
-        if (!loader || !progressBar) return;
+        if (!loader) return;
 
-        const minimumVisibleTime = 2400;
-        const maximumVisibleTime = 6000;
-        const startedAt = performance.now();
+        /*
+        |--------------------------------------------------------------------------
+        | LOADER PROGRESS RESET
+        |--------------------------------------------------------------------------
+        | Wymuszamy start paska od zera. Dzięki temu nawet po cache/przejściu
+        | między stronami animacja nie startuje jako już pełna.
+        |--------------------------------------------------------------------------
+        */
 
-        let isHidden = false;
-        let targetProgress = 0;
-        let currentProgress = 0;
-        let animationFrame = null;
+        if (progress) {
+            progress.style.animation = 'none';
+            progress.style.width = '0';
 
-        progressBar.style.transform = 'scaleX(0)';
+            // Wymuszenie reflow — bez tego przeglądarka czasem nie restartuje animacji.
+            void progress.offsetWidth;
 
-        const animateProgress = () => {
-            currentProgress += (targetProgress - currentProgress) * 0.08;
+            progress.style.animation = 'loading 2s forwards';
+        }
 
-            progressBar.style.transform = `scaleX(${currentProgress / 100})`;
+        /*
+        |--------------------------------------------------------------------------
+        | HIDE LOADER
+        |--------------------------------------------------------------------------
+        | Tak jak w pierwszej wersji: loader nie czeka na window.load.
+        | Pasek dochodzi do końca i ekran znika po około 2.2 s.
+        |--------------------------------------------------------------------------
+        */
 
-            if (!isHidden) {
-                animationFrame = window.requestAnimationFrame(animateProgress);
-            }
-        };
+        window.setTimeout(() => {
+            loader.classList.add('is-hiding');
+            loader.classList.add('loader-hide');
 
-        const progressInterval = window.setInterval(() => {
-            if (targetProgress < 35) {
-                targetProgress += 6;
-            } else if (targetProgress < 70) {
-                targetProgress += 3;
-            } else if (targetProgress < 92) {
-                targetProgress += 1;
-            }
-
-            targetProgress = Math.min(targetProgress, 92);
-        }, 120);
-
-        animationFrame = window.requestAnimationFrame(animateProgress);
-
-        const finishLoader = () => {
-            if (isHidden) return;
-
-            const elapsed = performance.now() - startedAt;
-            const remainingTime = Math.max(0, minimumVisibleTime - elapsed);
+            loader.style.transition = 'opacity .7s ease, visibility 0s linear .7s';
+            loader.style.opacity = '0';
+            loader.style.visibility = 'hidden';
+            loader.style.pointerEvents = 'none';
 
             window.setTimeout(() => {
-                if (isHidden) return;
-
-                targetProgress = 100;
-
-                const finishAnimationStartedAt = performance.now();
-                const finishDuration = 420;
-
-                const finishProgress = () => {
-                    const elapsedFinish = performance.now() - finishAnimationStartedAt;
-                    const progress = Math.min(elapsedFinish / finishDuration, 1);
-
-                    currentProgress = currentProgress + ((100 - currentProgress) * progress);
-                    progressBar.style.transform = `scaleX(${currentProgress / 100})`;
-
-                    if (progress < 1) {
-                        window.requestAnimationFrame(finishProgress);
-                        return;
-                    }
-
-                    progressBar.style.transform = 'scaleX(1)';
-
-                    window.setTimeout(() => {
-                        isHidden = true;
-
-                        window.clearInterval(progressInterval);
-
-                        if (animationFrame) {
-                            window.cancelAnimationFrame(animationFrame);
-                        }
-
-                        loader.classList.add('is-hiding');
-
-                        const removeLoader = () => loader.remove();
-
-                        loader.addEventListener('transitionend', removeLoader, { once: true });
-                        window.setTimeout(removeLoader, 900);
-                    }, 180);
-                };
-
-                window.requestAnimationFrame(finishProgress);
-            }, remainingTime);
-        };
-
-        if (document.readyState === 'complete') {
-            window.setTimeout(finishLoader, 400);
-        } else {
-            window.addEventListener('load', finishLoader, { once: true });
-            window.setTimeout(finishLoader, maximumVisibleTime);
-        }
+                loader.remove();
+            }, 750);
+        }, 2200);
     }
 
     function initScrollUi() {
@@ -137,8 +86,15 @@
             }
 
             if (scrollProgress) {
-                const scrollableHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                const progress = scrollableHeight > 0 ? (scrollY / scrollableHeight) * 100 : 0;
+                const scrollableHeight =
+                    document.documentElement.scrollHeight -
+                    document.documentElement.clientHeight;
+
+                const progress =
+                    scrollableHeight > 0
+                        ? (scrollY / scrollableHeight) * 100
+                        : 0;
+
                 scrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
             }
 
@@ -153,19 +109,26 @@
         };
 
         requestUpdate();
+
         window.addEventListener('scroll', requestUpdate, { passive: true });
         window.addEventListener('resize', requestUpdate, { passive: true });
     }
 
     function initCursorGlow() {
-        const supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        const supportsFinePointer = window.matchMedia(
+            '(hover: hover) and (pointer: fine)'
+        ).matches;
 
         if (!supportsFinePointer) return;
 
-        const cursor = document.createElement('div');
-        cursor.className = 'cursor-glow';
-        cursor.setAttribute('aria-hidden', 'true');
-        document.body.appendChild(cursor);
+        let cursor = document.querySelector('.cursor-glow');
+
+        if (!cursor) {
+            cursor = document.createElement('div');
+            cursor.className = 'cursor-glow';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+        }
 
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
@@ -176,9 +139,14 @@
         const render = () => {
             x += (targetX - x) * 0.24;
             y += (targetY - y) * 0.24;
-            cursor.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
 
-            if (Math.abs(targetX - x) > 0.15 || Math.abs(targetY - y) > 0.15) {
+            cursor.style.transform =
+                `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+
+            if (
+                Math.abs(targetX - x) > 0.15 ||
+                Math.abs(targetY - y) > 0.15
+            ) {
                 frameId = window.requestAnimationFrame(render);
                 return;
             }
@@ -191,6 +159,7 @@
         document.addEventListener('pointermove', (event) => {
             targetX = event.clientX;
             targetY = event.clientY;
+
             cursor.classList.add('is-visible');
 
             if (!frameId) {
@@ -198,13 +167,20 @@
             }
         }, { passive: true });
 
-        document.addEventListener('pointerleave', () => cursor.classList.remove('is-visible'));
+        document.addEventListener('pointerleave', () => {
+            cursor.classList.remove('is-visible');
+        });
     }
 
     function initBackgroundParallax() {
         const orbs = [...document.querySelectorAll('.orb-motion')];
 
-        if (!orbs.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (
+            !orbs.length ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
+            return;
+        }
 
         const state = orbs.map((orb, index) => ({
             element: orb,
@@ -223,14 +199,21 @@
             state.forEach((orb) => {
                 orb.x += (orb.targetX - orb.x) * 0.08;
                 orb.y += (orb.targetY - orb.y) * 0.08;
-                orb.element.style.transform = `translate3d(${orb.x}px, ${orb.y}px, 0)`;
 
-                if (Math.abs(orb.targetX - orb.x) > 0.1 || Math.abs(orb.targetY - orb.y) > 0.1) {
+                orb.element.style.transform =
+                    `translate3d(${orb.x}px, ${orb.y}px, 0)`;
+
+                if (
+                    Math.abs(orb.targetX - orb.x) > 0.1 ||
+                    Math.abs(orb.targetY - orb.y) > 0.1
+                ) {
                     isMoving = true;
                 }
             });
 
-            frameId = isMoving ? window.requestAnimationFrame(render) : null;
+            frameId = isMoving
+                ? window.requestAnimationFrame(render)
+                : null;
         };
 
         document.addEventListener('pointermove', (event) => {
@@ -265,6 +248,7 @@
             const update = (now) => {
                 const progress = Math.min(1, (now - startTime) / duration);
                 const easedProgress = 1 - Math.pow(1 - progress, 3);
+
                 counter.textContent = Math.ceil(target * easedProgress).toString();
 
                 if (progress < 1) {
@@ -299,7 +283,10 @@
 
         if (!elements.length) return;
 
-        if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (
+            !('IntersectionObserver' in window) ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
             elements.forEach((element) => element.classList.add('visible'));
             return;
         }
@@ -330,7 +317,10 @@
             ripple.style.top = `${event.clientY - rect.top}px`;
 
             button.appendChild(ripple);
-            window.setTimeout(() => ripple.remove(), 600);
+
+            window.setTimeout(() => {
+                ripple.remove();
+            }, 600);
         }, { passive: true });
     }
 
