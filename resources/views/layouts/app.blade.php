@@ -17,6 +17,7 @@
 
     {{-- Style specyficzne dla danej podstrony. --}}
     @stack('styles')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>

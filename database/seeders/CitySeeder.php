@@ -10,19 +10,28 @@ class CitySeeder extends Seeder
     public function run(): void
     {
         $cities = [
-            ['name' => 'Opole', 'slug' => 'opole'],
+            ['name' => 'Gdańsk', 'slug' => 'gdansk'],
+            ['name' => 'Poznań', 'slug' => 'poznan'],
             ['name' => 'Wrocław', 'slug' => 'wroclaw'],
-            ['name' => 'Katowice', 'slug' => 'katowice'],
             ['name' => 'Kraków', 'slug' => 'krakow'],
             ['name' => 'Warszawa', 'slug' => 'warszawa'],
-            ['name' => 'Poznań', 'slug' => 'poznan'],
-            ['name' => 'Gdańsk', 'slug' => 'gdansk'],
+            ['name' => 'Olsztyn', 'slug' => 'olsztyn'],
         ];
+
+        $allowedSlugs = collect($cities)->pluck('slug')->all();
+
+        City::query()
+            ->whereNotIn('slug', $allowedSlugs)
+            ->update(['is_active' => false]);
 
         foreach ($cities as $city) {
             City::updateOrCreate(
                 ['slug' => $city['slug']],
-                [...$city, 'is_active' => true],
+                [
+                    'name' => $city['name'],
+                    'slug' => $city['slug'],
+                    'is_active' => true,
+                ],
             );
         }
     }
