@@ -3,6 +3,7 @@
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\SeatSelectionController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\DemoAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')
@@ -19,7 +20,7 @@ Route::get('/rezerwacja/{trip}', [CheckoutController::class, 'show'])
 
 Route::post('/rezerwacja/{trip}', [CheckoutController::class, 'store'])
     ->name('checkout.store');
-    
+
 Route::view('/qr/zatrudnij-mnie', 'qr.hire-me')
     ->name('qr.hire-me');
 
@@ -31,3 +32,13 @@ Route::view('/promocje', 'promotions.index')
 
 Route::view('/kontakt', 'contact.index')
     ->name('contact');
+
+
+Route::get('/auth', [DemoAuthController::class, 'index'])
+    ->name('auth.index');
+
+Route::post('/auth/login', [DemoAuthController::class, 'login'])
+    ->name('auth.login');
+
+Route::post('/auth/logout', [DemoAuthController::class, 'logout'])
+    ->name('auth.logout');

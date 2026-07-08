@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             TrainSeeder::class,
             DemoTripSeeder::class,
+            DemoUserSeeder::class,
         ]);
     }
 }

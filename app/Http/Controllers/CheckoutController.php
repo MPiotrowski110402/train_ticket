@@ -78,6 +78,7 @@ class CheckoutController extends Controller
         $validated = $request->validate([
             'guest_name' => ['required', 'string', 'min:3', 'max:120'],
             'guest_email' => ['required', 'email', 'max:160'],
+            'guest_phone' => ['required', 'string', 'min:7', 'max:30'],
         ]);
 
         $seatIds = collect(
@@ -98,6 +99,7 @@ class CheckoutController extends Controller
 
         $paymentReference = 'DEMO-' . strtoupper(Str::random(10));
         $ticketIds = [];
+        $user = $request->user();
 
         DB::transaction(function () use ($request, $trip, $seatIds, $validated, $paymentReference, &$ticketIds) {
             $seats = Seat::query()
@@ -131,7 +133,7 @@ class CheckoutController extends Controller
                 $ticket = Ticket::create([
                     'trip_id' => $trip->id,
                     'seat_id' => $seat->id,
-                    'user_id' => null,
+                    'user_id' => $user?->id,
                     'guest_name' => $validated['guest_name'],
                     'guest_email' => $validated['guest_email'],
                     'price' => $this->priceForSeat($trip, $seat),

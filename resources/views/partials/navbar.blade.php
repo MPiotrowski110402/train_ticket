@@ -13,9 +13,22 @@
         </nav>
 
         <div class="navbar-buttons">
-            <button type="button" class="btn btn-light" disabled title="Logowanie nie jest dostępne w wersji demo">
-                Zaloguj
-            </button>
+            @auth
+                <form method="POST" action="{{ route('auth.logout') }}">
+                    @csrf
+
+                    <button type="submit" class="btn btn-light">
+                        Wyloguj
+                    </button>
+                </form>
+            @else
+                <a
+                    href="{{ route('auth.index', ['redirect' => url()->current()]) }}"
+                    class="btn btn-light"
+                >
+                    Zaloguj się
+                </a>
+            @endauth
 
             <a href="{{ route('connections') }}" class="btn btn-primary">Kup bilet</a>
         </div>

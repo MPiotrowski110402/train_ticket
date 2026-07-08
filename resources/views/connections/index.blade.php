@@ -17,9 +17,9 @@
 
         $routeLabel = match (true) {
             $fromCity && $toCity => "{$fromCity->name} → {$toCity->name}",
-            $fromCity => "Odjazdy z: {$fromCity->name}",
-            $toCity => "Przyjazdy do: {$toCity->name}",
-            default => 'Wszystkie kierunki demonstracyjne',
+            $fromCity => "Wybierz jeszcze miasto docelowe",
+            $toCity => "Wybierz jeszcze miasto początkowe",
+            default => 'Wybierz trasę demonstracyjną',
         };
     @endphp
 
@@ -33,31 +33,68 @@
 
                 <p>
                     {{ $routeLabel }}
-                    · znaleziono: {{ $trips->count() }}
+
+                    @if ($hasSearched)
+                        · znaleziono: {{ $trips->count() }}
+                    @else
+                        · najpierw wybierz trasę
+                    @endif
                 </p>
             </div>
 
-            <div class="connections-list">
-                @forelse ($trips as $trip)
-                    @include('connections.partials.connection-card', [
-                        'trip' => $trip,
-                    ])
-                @empty
-                    <div class="connection-card">
-                        <div class="connection-top">
-                            <div>
-                                <span class="direct">Brak wyników</span>
+            @if (! $hasSearched)
+                <div class="route-guide-card">
+                    <div class="route-guide-header">
+                        <span>Demo rozkładu</span>
 
-                                <h2>Nie znaleziono połączeń</h2>
+                        <h2>Wybierz jedną z uproszczonych tras</h2>
 
-                                <p>
-                                    Zmień miasto, kierunek lub datę wyszukiwania.
-                                </p>
+                        <p>
+                            Wersja demonstracyjna korzysta z uproszczonej siatki połączeń.
+                            Każde miasto komunikuje się tylko z sąsiednim miastem na trasie,
+                            a połączenia działają w obie strony.
+                        </p>
+                    </div>
+
+                    <div class="route-guide-line">
+                        @foreach ($demoRoutePairs as [$from, $to])
+                            <div class="route-guide-item">
+                                <strong>{{ $from }}</strong>
+                                <span>↔</span>
+                                <strong>{{ $to }}</strong>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="route-guide-note">
+                        Przykład: <strong>Gdańsk → Poznań</strong> pokaże połączenia,
+                        ale <strong>Gdańsk → Kraków</strong> nie, bo w demo nie ma połączenia bezpośredniego.
+                    </div>
+                </div>
+            @else
+                <div class="connections-list">
+                    @forelse ($trips as $trip)
+                        @include('connections.partials.connection-card', [
+                            'trip' => $trip,
+                        ])
+                    @empty
+                        <div class="connection-card">
+                            <div class="connection-top">
+                                <div>
+                                    <span class="direct">Brak wyników</span>
+
+                                    <h2>Nie znaleziono połączeń</h2>
+
+                                    <p>
+                                        Ta relacja nie istnieje w uproszczonej siatce demo
+                                        albo nie ma kursów dla wybranej daty.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforelse
-            </div>
+                    @endforelse
+                </div>
+            @endif
 
         </div>
     </section>

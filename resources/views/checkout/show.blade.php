@@ -413,7 +413,7 @@
                                     id="guestName"
                                     type="text"
                                     name="guest_name"
-                                    value="{{ old('guest_name') }}"
+                                    value="{{ old('guest_name', auth()->user()?->name) }}"
                                     placeholder="Jan Kowalski"
                                     minlength="3"
                                     maxlength="120"
@@ -428,7 +428,7 @@
                                     id="guestEmail"
                                     type="email"
                                     name="guest_email"
-                                    value="{{ old('guest_email') }}"
+                                    value="{{ old('guest_email', auth()->user()?->email) }}"
                                     placeholder="jan@example.com"
                                     maxlength="160"
                                     required
@@ -442,7 +442,7 @@
                                     id="guestPhone"
                                     type="tel"
                                     name="guest_phone"
-                                    value="{{ old('guest_phone') }}"
+                                    value="{{ old('guest_phone', auth()->user()?->phone) }}"
                                     placeholder="500 600 700"
                                     pattern="[0-9 +]{7,20}"
                                     required
