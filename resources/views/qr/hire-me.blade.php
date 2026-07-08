@@ -25,7 +25,7 @@
 </head>
 <body>
     <img
-        src="{{ asset('assets/memes/zatrudnij-mnie-please.png') }}"
+        src="{{ asset('assets/memes/wazne.png') }}"
         alt="Zatrudnij mnie please"
     >
 </body>
