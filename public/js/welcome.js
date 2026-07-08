@@ -24,14 +24,46 @@
 
     function initLoader() {
         const loader = document.getElementById('loader');
+        const progressBar = loader?.querySelector('.loader-progress');
 
-        if (!loader) return;
+        if (!loader || !progressBar) return;
 
-        const minimumVisibleTime = 2200;
+        const minimumVisibleTime = 2400;
+        const maximumVisibleTime = 6000;
         const startedAt = performance.now();
-        let isHidden = false;
 
-        const hideLoader = () => {
+        let isHidden = false;
+        let targetProgress = 0;
+        let currentProgress = 0;
+        let animationFrame = null;
+
+        progressBar.style.transform = 'scaleX(0)';
+
+        const animateProgress = () => {
+            currentProgress += (targetProgress - currentProgress) * 0.08;
+
+            progressBar.style.transform = `scaleX(${currentProgress / 100})`;
+
+            if (!isHidden) {
+                animationFrame = window.requestAnimationFrame(animateProgress);
+            }
+        };
+
+        const progressInterval = window.setInterval(() => {
+            if (targetProgress < 35) {
+                targetProgress += 6;
+            } else if (targetProgress < 70) {
+                targetProgress += 3;
+            } else if (targetProgress < 92) {
+                targetProgress += 1;
+            }
+
+            targetProgress = Math.min(targetProgress, 92);
+        }, 120);
+
+        animationFrame = window.requestAnimationFrame(animateProgress);
+
+        const finishLoader = () => {
             if (isHidden) return;
 
             const elapsed = performance.now() - startedAt;
@@ -40,21 +72,52 @@
             window.setTimeout(() => {
                 if (isHidden) return;
 
-                isHidden = true;
-                loader.classList.add('is-hiding');
+                targetProgress = 100;
 
-                const removeLoader = () => loader.remove();
-                loader.addEventListener('transitionend', removeLoader, { once: true });
-                window.setTimeout(removeLoader, 800);
+                const finishAnimationStartedAt = performance.now();
+                const finishDuration = 420;
+
+                const finishProgress = () => {
+                    const elapsedFinish = performance.now() - finishAnimationStartedAt;
+                    const progress = Math.min(elapsedFinish / finishDuration, 1);
+
+                    currentProgress = currentProgress + ((100 - currentProgress) * progress);
+                    progressBar.style.transform = `scaleX(${currentProgress / 100})`;
+
+                    if (progress < 1) {
+                        window.requestAnimationFrame(finishProgress);
+                        return;
+                    }
+
+                    progressBar.style.transform = 'scaleX(1)';
+
+                    window.setTimeout(() => {
+                        isHidden = true;
+
+                        window.clearInterval(progressInterval);
+
+                        if (animationFrame) {
+                            window.cancelAnimationFrame(animationFrame);
+                        }
+
+                        loader.classList.add('is-hiding');
+
+                        const removeLoader = () => loader.remove();
+
+                        loader.addEventListener('transitionend', removeLoader, { once: true });
+                        window.setTimeout(removeLoader, 900);
+                    }, 180);
+                };
+
+                window.requestAnimationFrame(finishProgress);
             }, remainingTime);
         };
 
         if (document.readyState === 'complete') {
-            hideLoader();
+            window.setTimeout(finishLoader, 400);
         } else {
-            window.addEventListener('load', hideLoader, { once: true });
-            // A safe fallback for a broken third-party asset. The page is never blocked indefinitely.
-            window.setTimeout(hideLoader, 6000);
+            window.addEventListener('load', finishLoader, { once: true });
+            window.setTimeout(finishLoader, maximumVisibleTime);
         }
     }
 
