@@ -7,6 +7,7 @@ use App\Models\Trip;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class SeatSelectionController extends Controller
@@ -68,6 +69,7 @@ class SeatSelectionController extends Controller
             }
 
             $lockedUntil = now()->addMinutes(10);
+            $selectionToken = (string) Str::uuid();
 
             foreach ($seats as $seat) {
                 Cache::put(
@@ -76,21 +78,46 @@ class SeatSelectionController extends Controller
                         'trip_id' => $trip->id,
                         'seat_id' => $seat->id,
                         'session_id' => $request->session()->getId(),
+                        'selection_token' => $selectionToken,
                         'locked_until' => $lockedUntil->toIso8601String(),
                     ],
                     $lockedUntil
                 );
             }
 
+            $selectedSeatIds = $seats
+                ->pluck('id')
+                ->values()
+                ->all();
+
+            Cache::put(
+                "checkout-selection:{$selectionToken}",
+                [
+                    'trip_id' => $trip->id,
+                    'seat_ids' => $selectedSeatIds,
+                    'locked_until' => $lockedUntil->toIso8601String(),
+                ],
+                $lockedUntil
+            );
+
             $request->session()->put(
                 "selected_seats.{$trip->id}",
-                $seats->pluck('id')->values()->all()
+                $selectedSeatIds
+            );
+
+            $request->session()->put(
+                "selected_checkout_token.{$trip->id}",
+                $selectionToken
             );
 
             return response()->json([
                 'message' => 'Miejsca zostały tymczasowo zablokowane.',
-                'checkout_url' => route('checkout.show', $trip),
+                'checkout_url' => route('checkout.show', [
+                    'trip' => $trip,
+                    'selection' => $selectionToken,
+                ], false),
                 'locked_until' => $lockedUntil->toIso8601String(),
+                'selection_token' => $selectionToken,
                 'selected_seats' => $seats
                     ->sortBy([
                         ['wagon.number', 'asc'],

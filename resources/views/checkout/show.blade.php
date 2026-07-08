@@ -401,9 +401,16 @@
                     <form
                         id="checkoutPaymentForm"
                         method="POST"
-                        action="{{ route('checkout.store', $trip) }}"
+                        action="{{ route('checkout.store', [
+                            'trip' => $trip,
+                            'selection' => $selectionToken ?? request('selection'),
+                        ]) }}"
                     >
                         @csrf
+                        action="{{ route('checkout.store', [
+                            'trip' => $trip,
+                            'selection' => $selectionToken ?? request('selection'),
+                        ]) }}"
 
                         <div class="checkout-form-grid">
                             <div class="form-field full">

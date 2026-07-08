@@ -17,9 +17,9 @@ class CheckoutController extends Controller
 {
     public function show(Request $request, Trip $trip): View|RedirectResponse
     {
-        $seatIds = collect(
-            $request->session()->get("selected_seats.{$trip->id}", [])
-        )->unique()->values();
+        $selectionToken = $this->selectionToken($request, $trip);
+
+        $seatIds = $this->selectedSeatIds($request, $trip, $selectionToken);
 
         if ($seatIds->isEmpty()) {
             return redirect()
@@ -52,8 +52,8 @@ class CheckoutController extends Controller
                 ->with('error', 'Wybrane miejsca nie należą do tego połączenia.');
         }
 
-        $expiredSeat = $seats->first(function (Seat $seat) use ($request) {
-            return ! $this->seatLockedByCurrentSession($seat, $request);
+        $expiredSeat = $seats->first(function (Seat $seat) use ($request, $selectionToken) {
+            return ! $this->seatLockedByCurrentSessionOrToken($seat, $request, $selectionToken);
         });
 
         if ($expiredSeat) {
@@ -70,6 +70,7 @@ class CheckoutController extends Controller
             'trip' => $trip,
             'seats' => $seats,
             'totalPrice' => $totalPrice,
+            'selectionToken' => $selectionToken,
         ]);
     }
 
@@ -81,9 +82,9 @@ class CheckoutController extends Controller
             'guest_phone' => ['required', 'string', 'min:7', 'max:30'],
         ]);
 
-        $seatIds = collect(
-            $request->session()->get("selected_seats.{$trip->id}", [])
-        )->unique()->values();
+        $selectionToken = $this->selectionToken($request, $trip);
+
+        $seatIds = $this->selectedSeatIds($request, $trip, $selectionToken);
 
         if ($seatIds->isEmpty()) {
             return redirect()
@@ -101,7 +102,16 @@ class CheckoutController extends Controller
         $ticketIds = [];
         $user = $request->user();
 
-        DB::transaction(function () use ($request, $trip, $seatIds, $validated, $paymentReference, &$ticketIds) {
+        DB::transaction(function () use (
+            $request,
+            $trip,
+            $seatIds,
+            $validated,
+            $paymentReference,
+            &$ticketIds,
+            $user,
+            $selectionToken
+        ) {
             $seats = Seat::query()
                 ->with('wagon')
                 ->whereIn('id', $seatIds)
@@ -124,7 +134,7 @@ class CheckoutController extends Controller
                     ]);
                 }
 
-                if (! $this->seatLockedByCurrentSession($seat, $request)) {
+                if (! $this->seatLockedByCurrentSessionOrToken($seat, $request, $selectionToken)) {
                     throw ValidationException::withMessages([
                         'seats' => "Blokada miejsca {$seat->seat_number} wygasła.",
                     ]);
@@ -152,15 +162,58 @@ class CheckoutController extends Controller
             }
         });
 
+        $successToken = (string) Str::uuid();
+
+        Cache::put(
+            "checkout-success:{$successToken}",
+            [
+                'ticket_ids' => $ticketIds,
+                'payment_reference' => $paymentReference,
+            ],
+            now()->addMinutes(30)
+        );
+
+        if ($selectionToken) {
+            Cache::forget("checkout-selection:{$selectionToken}");
+        }
+
         $request->session()->forget("selected_seats.{$trip->id}");
+        $request->session()->forget("selected_checkout_token.{$trip->id}");
         $request->session()->put('last_ticket_ids', $ticketIds);
 
-        return redirect()->route('checkout.success');
+        return redirect()->route('checkout.success', [
+            'purchase' => $successToken,
+        ]);
     }
 
     public function success(Request $request): View|RedirectResponse
     {
-        $ticketIds = $request->session()->get('last_ticket_ids', []);
+        $successToken = $request->query('purchase');
+
+        $ticketIds = collect(
+            $request->session()->get('last_ticket_ids', [])
+        );
+
+        if ($successToken) {
+            $successData = Cache::get("checkout-success:{$successToken}");
+
+            if (
+                is_array($successData)
+                && isset($successData['ticket_ids'])
+                && is_array($successData['ticket_ids'])
+            ) {
+                $ticketIds = collect($successData['ticket_ids']);
+            }
+        }
+
+        $ticketIds = $ticketIds
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ticketIds->isEmpty()) {
+            return redirect()->route('connections');
+        }
 
         $tickets = Ticket::query()
             ->with([
@@ -182,12 +235,72 @@ class CheckoutController extends Controller
         ]);
     }
 
-    private function seatLockedByCurrentSession(Seat $seat, Request $request): bool
+    private function selectionToken(Request $request, Trip $trip): ?string
     {
+        $token = $request->input('selection')
+            ?? $request->query('selection')
+            ?? $request->session()->get("selected_checkout_token.{$trip->id}");
+
+        return is_string($token) && $token !== ''
+            ? $token
+            : null;
+    }
+
+    private function selectedSeatIds(Request $request, Trip $trip, ?string $selectionToken): \Illuminate\Support\Collection
+    {
+        $seatIds = collect(
+            $request->session()->get("selected_seats.{$trip->id}", [])
+        );
+
+        if ($selectionToken) {
+            $selection = Cache::get("checkout-selection:{$selectionToken}");
+
+            if (
+                is_array($selection)
+                && (int) ($selection['trip_id'] ?? 0) === (int) $trip->id
+                && isset($selection['seat_ids'])
+                && is_array($selection['seat_ids'])
+            ) {
+                $seatIds = collect($selection['seat_ids']);
+
+                $request->session()->put(
+                    "selected_seats.{$trip->id}",
+                    $seatIds->values()->all()
+                );
+
+                $request->session()->put(
+                    "selected_checkout_token.{$trip->id}",
+                    $selectionToken
+                );
+            }
+        }
+
+        return $seatIds
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    private function seatLockedByCurrentSessionOrToken(
+        Seat $seat,
+        Request $request,
+        ?string $selectionToken
+    ): bool {
         $lockData = Cache::get($seat->lockKey());
 
-        return is_array($lockData)
-            && ($lockData['session_id'] ?? null) === $request->session()->getId();
+        if (! is_array($lockData)) {
+            return false;
+        }
+
+        if (
+            $selectionToken
+            && ($lockData['selection_token'] ?? null) === $selectionToken
+        ) {
+            return true;
+        }
+
+        return ($lockData['session_id'] ?? null) === $request->session()->getId();
     }
 
     private function priceForSeat(Trip $trip, Seat $seat): float
