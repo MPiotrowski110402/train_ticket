@@ -340,3 +340,65 @@
         });
     }
 })();
+
+/* =========================
+   DEMO AUTH FALLBACK FOR IFRAME
+========================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const demoUser = {
+        name: 'Testowy User',
+        email: 'testowy.user@test.pl',
+        phone: '500 600 700',
+    };
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('demo_logged') === '1') {
+        localStorage.setItem('railticket_demo_user', JSON.stringify(demoUser));
+
+        params.delete('demo_logged');
+
+        const cleanQuery = params.toString();
+        const cleanUrl = window.location.pathname + (cleanQuery ? `?${cleanQuery}` : '');
+
+        window.history.replaceState({}, '', cleanUrl);
+    }
+
+    const storedUserRaw = localStorage.getItem('railticket_demo_user');
+    const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+
+    if (!storedUser) {
+        return;
+    }
+
+    const authButton = document.querySelector('#demoAuthButton');
+
+    if (authButton) {
+        authButton.textContent = 'Wyloguj';
+        authButton.href = '#';
+        authButton.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            localStorage.removeItem('railticket_demo_user');
+
+            window.location.href = '/';
+        });
+    }
+
+    const guestName = document.querySelector('[name="guest_name"]');
+    const guestEmail = document.querySelector('[name="guest_email"]');
+    const guestPhone = document.querySelector('[name="guest_phone"]');
+
+    if (guestName && !guestName.value) {
+        guestName.value = storedUser.name;
+    }
+
+    if (guestEmail && !guestEmail.value) {
+        guestEmail.value = storedUser.email;
+    }
+
+    if (guestPhone && !guestPhone.value) {
+        guestPhone.value = storedUser.phone;
+    }
+});

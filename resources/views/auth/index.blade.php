@@ -167,6 +167,7 @@
 
                 <form id="demoLoginForm" method="POST" action="{{ route('auth.login') }}">
                     @csrf
+                    <input type="hidden" name="redirect" value="{{ $redirect ?? route('home', [], false) }}">
 
                     <div class="auth-field">
                         <label for="email">Adres e-mail</label>

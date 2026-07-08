@@ -10,23 +10,17 @@ use Illuminate\Support\Facades\Auth;
 
 class DemoAuthController extends Controller
 {
-    public function index(Request $request): View|RedirectResponse
+    public function index(Request $request): View
     {
-        if (Auth::check()) {
-            return redirect()->intended(route('home'));
+        $redirect = $request->query('redirect');
+
+        if (! is_string($redirect) || $redirect === '') {
+            $redirect = route('home', [], false);
         }
 
-        if ($request->filled('redirect')) {
-            $request->session()->put('url.intended', $request->query('redirect'));
-        } else {
-            $previousUrl = url()->previous();
-
-            if ($previousUrl !== route('auth.index')) {
-                $request->session()->put('url.intended', $previousUrl);
-            }
-        }
-
-        return view('auth.index');
+        return view('auth.index', [
+            'redirect' => $redirect,
+        ]);
     }
 
     public function login(Request $request): RedirectResponse
@@ -39,11 +33,23 @@ class DemoAuthController extends Controller
             return back()->with('error', 'Brak użytkownika demo w bazie.');
         }
 
+        /*
+         * Normalne logowanie zostawiamy, jeśli przeglądarka pozwala na cookies.
+         * W portfolio/iframe i tak oprzemy widok na demo_logged=1 + localStorage.
+         */
         Auth::login($user, remember: true);
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home'));
+        $redirect = $request->input('redirect');
+
+        if (! is_string($redirect) || $redirect === '') {
+            $redirect = route('home', [], false);
+        }
+
+        $separator = str_contains($redirect, '?') ? '&' : '?';
+
+        return redirect()->to($redirect . $separator . 'demo_logged=1');
     }
 
     public function logout(Request $request): RedirectResponse

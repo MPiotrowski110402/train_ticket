@@ -23,7 +23,8 @@
                 </form>
             @else
                 <a
-                    href="{{ route('auth.index', ['redirect' => url()->current()]) }}"
+                    id="demoAuthButton"
+                    href="{{ route('auth.index', ['redirect' => request()->fullUrl()]) }}"
                     class="btn btn-light"
                 >
                     Zaloguj się
