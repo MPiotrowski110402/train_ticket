@@ -342,63 +342,110 @@
 })();
 
 /* =========================
-   DEMO AUTH FALLBACK FOR IFRAME
+   DEMO AUTH FALLBACK
 ========================= */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const demoUser = {
-        name: 'Testowy User',
-        email: 'testowy.user@test.pl',
-        phone: '500 600 700',
-    };
+    const demoUserRaw = localStorage.getItem('railticket_demo_user');
 
-    const params = new URLSearchParams(window.location.search);
+    let demoUser = null;
 
-    if (params.get('demo_logged') === '1') {
-        localStorage.setItem('railticket_demo_user', JSON.stringify(demoUser));
-
-        params.delete('demo_logged');
-
-        const cleanQuery = params.toString();
-        const cleanUrl = window.location.pathname + (cleanQuery ? `?${cleanQuery}` : '');
-
-        window.history.replaceState({}, '', cleanUrl);
-    }
-
-    const storedUserRaw = localStorage.getItem('railticket_demo_user');
-    const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
-
-    if (!storedUser) {
-        return;
+    try {
+        demoUser = demoUserRaw ? JSON.parse(demoUserRaw) : null;
+    } catch (error) {
+        localStorage.removeItem('railticket_demo_user');
+        demoUser = null;
     }
 
     const authButton = document.querySelector('#demoAuthButton');
 
+    const cleanCurrentUrl = () => {
+        const url = new URL(window.location.href);
+
+        url.searchParams.delete('demo_logged');
+        url.searchParams.delete('demo_logout');
+        url.searchParams.delete('t');
+
+        return url.pathname + (url.search ? url.search : '');
+    };
+
+    const hardRefreshTo = (path) => {
+        const separator = path.includes('?') ? '&' : '?';
+
+        window.location.replace(`${path}${separator}t=${Date.now()}`);
+    };
+
+    const logoutDemoUser = async () => {
+        localStorage.removeItem('railticket_demo_user');
+
+        /*
+         * Czyścimy też normalną sesję Laravela, jeśli akurat istnieje.
+         * Nie czekamy na odpowiedź, bo w iframe cookies mogą być blokowane.
+         */
+        try {
+            const logoutUrl = authButton?.dataset.logoutUrl || '/auth/logout';
+            const csrfToken = document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content');
+
+            if (csrfToken) {
+                fetch(logoutUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                }).catch(() => {});
+            }
+        } catch (error) {
+            // Demo logout i tak działa przez localStorage.
+        }
+
+        hardRefreshTo('/?demo_logout=1');
+    };
+
     if (authButton) {
-        authButton.textContent = 'Wyloguj';
-        authButton.href = '#';
-        authButton.addEventListener('click', (event) => {
-            event.preventDefault();
+        if (demoUser) {
+            authButton.textContent = 'Wyloguj';
+            authButton.href = '#';
+            authButton.dataset.state = 'logged';
 
-            localStorage.removeItem('railticket_demo_user');
+            authButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                logoutDemoUser();
+            });
+        } else {
+            authButton.textContent = 'Zaloguj się';
+            authButton.href = authButton.dataset.loginUrl || '/auth';
+            authButton.dataset.state = 'guest';
+        }
+    }
 
-            window.location.href = '/';
-        });
+    if (!demoUser) {
+        return;
     }
 
     const guestName = document.querySelector('[name="guest_name"]');
     const guestEmail = document.querySelector('[name="guest_email"]');
     const guestPhone = document.querySelector('[name="guest_phone"]');
 
-    if (guestName && !guestName.value) {
-        guestName.value = storedUser.name;
+    if (guestName) {
+        guestName.value = demoUser.name || '';
     }
 
-    if (guestEmail && !guestEmail.value) {
-        guestEmail.value = storedUser.email;
+    if (guestEmail) {
+        guestEmail.value = demoUser.email || '';
     }
 
-    if (guestPhone && !guestPhone.value) {
-        guestPhone.value = storedUser.phone;
+    if (guestPhone) {
+        guestPhone.value = demoUser.phone || '';
+    }
+
+    const cleanUrl = cleanCurrentUrl();
+
+    if (cleanUrl !== window.location.pathname + window.location.search) {
+        window.history.replaceState({}, '', cleanUrl);
     }
 });

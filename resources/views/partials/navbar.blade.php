@@ -13,23 +13,15 @@
         </nav>
 
         <div class="navbar-buttons">
-            @auth
-                <form method="POST" action="{{ route('auth.logout') }}">
-                    @csrf
-
-                    <button type="submit" class="btn btn-light">
-                        Wyloguj
-                    </button>
-                </form>
-            @else
-                <a
-                    id="demoAuthButton"
-                    href="{{ route('auth.index', ['redirect' => request()->fullUrl()]) }}"
-                    class="btn btn-light"
-                >
-                    Zaloguj się
-                </a>
-            @endauth
+            <a
+                id="demoAuthButton"
+                href="{{ route('auth.index', ['redirect' => request()->fullUrl()]) }}"
+                data-login-url="{{ route('auth.index', ['redirect' => request()->fullUrl()]) }}"
+                data-logout-url="{{ route('auth.logout') }}"
+                class="btn btn-light"
+            >
+                Zaloguj się
+            </a>
 
             <a href="{{ route('connections') }}" class="btn btn-primary">Kup bilet</a>
         </div>

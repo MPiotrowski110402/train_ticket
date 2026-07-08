@@ -234,8 +234,18 @@
 
             const demoPassword = '..........';
 
+            let hasStarted = false;
+
             const wait = (ms) => {
                 return new Promise((resolve) => window.setTimeout(resolve, ms));
+            };
+
+            const clearFields = () => {
+                emailInput.value = '';
+                passwordInput.value = '';
+
+                emailInput.setAttribute('autocomplete', 'off');
+                passwordInput.setAttribute('autocomplete', 'off');
             };
 
             const typeValue = async (input, value, delay) => {
@@ -255,39 +265,28 @@
             const getRedirectUrl = () => {
                 const redirectInput = form.querySelector('[name="redirect"]');
 
-                if (redirectInput && redirectInput.value) {
-                    return redirectInput.value;
+                let redirectUrl = redirectInput?.value || '/';
+
+                /*
+                 * Jeżeli przypadkiem redirect prowadzi znowu do /auth,
+                 * to wracamy na stronę główną.
+                 */
+                if (redirectUrl.includes('/auth')) {
+                    redirectUrl = '/';
                 }
 
-                return '/';
+                const separator = redirectUrl.includes('?') ? '&' : '?';
+
+                return `${redirectUrl}${separator}demo_logged=1&t=${Date.now()}`;
             };
 
-            const finishDemoLogin = async () => {
+            const finishLogin = async () => {
                 button.disabled = true;
                 button.classList.remove('is-auto-clicking');
                 button.classList.add('is-loading');
                 button.textContent = 'Trwa logowanie...';
 
-                /*
-                 * Próba normalnego logowania do Laravela w tle.
-                 * Nie czekamy na nią, bo w iframe cookies mogą być blokowane.
-                 */
-                try {
-                    const formData = new FormData(form);
-
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        credentials: 'include',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                        },
-                    }).catch(() => {});
-                } catch (error) {
-                    // Demo działa dalej przez localStorage.
-                }
-
-                await wait(1100);
+                await wait(900);
 
                 localStorage.setItem(
                     'railticket_demo_user',
@@ -296,41 +295,43 @@
 
                 button.textContent = 'Zalogowano ✓';
 
-                await wait(450);
+                await wait(500);
 
-                window.location.href = getRedirectUrl();
+                window.location.replace(getRedirectUrl());
             };
 
-            const runDemoLoginAnimation = async () => {
-                const startedAt = performance.now();
+            const runLoginAnimation = async () => {
+                if (hasStarted) {
+                    return;
+                }
+
+                hasStarted = true;
+
+                clearFields();
 
                 button.disabled = true;
                 button.textContent = 'Przygotowuję dane...';
 
+                await wait(500);
+
+                await typeValue(emailInput, demoUser.email, 95);
+
                 await wait(350);
 
-                await typeValue(emailInput, demoUser.email, 52);
+                await typeValue(passwordInput, demoPassword, 145);
 
-                await wait(280);
-
-                await typeValue(passwordInput, demoPassword, 80);
-
-                await wait(420);
+                await wait(450);
 
                 button.disabled = false;
                 button.textContent = 'Zaloguj';
                 button.classList.add('is-auto-clicking');
 
-                await wait(450);
+                await wait(600);
 
-                button.click();
+                button.disabled = true;
+                button.classList.remove('is-auto-clicking');
 
-                const elapsed = performance.now() - startedAt;
-                const remaining = Math.max(0, 5000 - elapsed);
-
-                await wait(remaining);
-
-                await finishDemoLogin();
+                await finishLogin();
             };
 
             form.addEventListener('submit', (event) => {
@@ -340,14 +341,12 @@
             button.addEventListener('click', (event) => {
                 event.preventDefault();
 
-                if (button.classList.contains('is-loading')) {
-                    return;
+                if (!button.classList.contains('is-loading')) {
+                    finishLogin();
                 }
-
-                finishDemoLogin();
             });
 
-            runDemoLoginAnimation();
+            runLoginAnimation();
         });
     </script>
 @endpush
