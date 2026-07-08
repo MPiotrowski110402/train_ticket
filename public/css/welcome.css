@@ -1853,12 +1853,20 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
+    #loader,
+    #loader *,
+    #loader *::before,
+    #loader *::after {
+        animation-duration: revert !important;
+        animation-iteration-count: revert !important;
+        transition-duration: revert !important;
+    }
+
+    #loader .loader-progress {
+        animation: loading 2s forwards !important;
+    }
+
+    #loader .loader-train {
+        animation: trainMove 2s infinite !important;
     }
 }
