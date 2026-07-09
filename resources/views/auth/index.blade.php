@@ -174,10 +174,11 @@
 
                         <input
                             id="email"
-                            type="email"
-                            name="email"
-                            autocomplete="email"
-                            required
+                            type="text"
+                            autocomplete="off"
+                            disabled
+                            value=""
+                            placeholder="Wpisz adres e-mail"
                         >
                     </div>
 
@@ -186,10 +187,11 @@
 
                         <input
                             id="password"
-                            type="password"
-                            name="password"
-                            autocomplete="current-password"
-                            required
+                            type="text"
+                            autocomplete="off"
+                            disabled
+                            value=""
+                            placeholder="Wpisz hasło"
                         >
                     </div>
 
