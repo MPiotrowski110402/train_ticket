@@ -217,12 +217,11 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const form = document.querySelector('#demoLoginForm');
             const emailInput = document.querySelector('#email');
             const passwordInput = document.querySelector('#password');
             const button = document.querySelector('#loginButton');
 
-            if (!form || !emailInput || !passwordInput || !button) {
+            if (!emailInput || !passwordInput || !button) {
                 return;
             }
 
@@ -234,119 +233,86 @@
 
             const demoPassword = '..........';
 
-            let hasStarted = false;
+            let emailIndex = 0;
+            let passwordIndex = 0;
+            let animationLocked = false;
 
             const wait = (ms) => {
                 return new Promise((resolve) => window.setTimeout(resolve, ms));
             };
 
-            const clearFields = () => {
+            const clearLoginState = () => {
                 emailInput.value = '';
                 passwordInput.value = '';
 
-                emailInput.setAttribute('autocomplete', 'off');
-                passwordInput.setAttribute('autocomplete', 'off');
-            };
+                emailInput.autocomplete = 'off';
+                passwordInput.autocomplete = 'off';
 
-            const typeValue = async (input, value, delay) => {
-                input.value = '';
-
-                for (const char of value) {
-                    input.value += char;
-
-                    input.dispatchEvent(new Event('input', {
-                        bubbles: true,
-                    }));
-
-                    await wait(delay);
-                }
-            };
-
-            const getRedirectUrl = () => {
-                const redirectInput = form.querySelector('[name="redirect"]');
-
-                let redirectUrl = redirectInput?.value || '/';
-
-                /*
-                 * Jeżeli przypadkiem redirect prowadzi znowu do /auth,
-                 * to wracamy na stronę główną.
-                 */
-                if (redirectUrl.includes('/auth')) {
-                    redirectUrl = '/';
-                }
-
-                const separator = redirectUrl.includes('?') ? '&' : '?';
-
-                return `${redirectUrl}${separator}demo_logged=1&t=${Date.now()}`;
-            };
-
-            const finishLogin = async () => {
                 button.disabled = true;
+                button.textContent = 'Zaloguj';
+                button.classList.remove('is-loading', 'is-auto-clicking');
+            };
+
+            const typeEmail = () => {
+                if (emailIndex < demoUser.email.length) {
+                    emailInput.value += demoUser.email.charAt(emailIndex);
+                    emailIndex++;
+
+                    window.setTimeout(typeEmail, 75);
+                    return;
+                }
+
+                window.setTimeout(typePassword, 300);
+            };
+
+            const typePassword = () => {
+                if (passwordIndex < demoPassword.length) {
+                    passwordInput.value += demoPassword.charAt(passwordIndex);
+                    passwordIndex++;
+
+                    window.setTimeout(typePassword, 115);
+                    return;
+                }
+
+                window.setTimeout(simulateClick, 500);
+            };
+
+            const simulateClick = async () => {
+                if (animationLocked) {
+                    return;
+                }
+
+                animationLocked = true;
+
+                button.disabled = false;
+                button.textContent = 'Zaloguj';
+                button.classList.add('is-auto-clicking');
+
+                await wait(450);
+
                 button.classList.remove('is-auto-clicking');
                 button.classList.add('is-loading');
+                button.disabled = true;
                 button.textContent = 'Trwa logowanie...';
 
-                await wait(900);
+                await wait(1400);
 
                 localStorage.setItem(
                     'railticket_demo_user',
                     JSON.stringify(demoUser)
                 );
 
+                button.classList.remove('is-loading');
                 button.textContent = 'Zalogowano ✓';
 
-                await wait(500);
+                await wait(550);
 
-                window.location.replace(getRedirectUrl());
+                window.location.replace('/polaczenia?demo_logged=1&t=' + Date.now());
             };
 
-            const runLoginAnimation = async () => {
-                if (hasStarted) {
-                    return;
-                }
+            clearLoginState();
 
-                hasStarted = true;
-
-                clearFields();
-
-                button.disabled = true;
-                button.textContent = 'Przygotowuję dane...';
-
-                await wait(500);
-
-                await typeValue(emailInput, demoUser.email, 95);
-
-                await wait(350);
-
-                await typeValue(passwordInput, demoPassword, 145);
-
-                await wait(450);
-
-                button.disabled = false;
-                button.textContent = 'Zaloguj';
-                button.classList.add('is-auto-clicking');
-
-                await wait(600);
-
-                button.disabled = true;
-                button.classList.remove('is-auto-clicking');
-
-                await finishLogin();
-            };
-
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-            });
-
-            button.addEventListener('click', (event) => {
-                event.preventDefault();
-
-                if (!button.classList.contains('is-loading')) {
-                    finishLogin();
-                }
-            });
-
-            runLoginAnimation();
+            window.setTimeout(typeEmail, 650);
         });
     </script>
 @endpush
